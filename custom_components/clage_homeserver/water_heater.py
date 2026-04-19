@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from homeassistant import config_entries, core
 from homeassistant.components.water_heater import (
     STATE_ECO,
     WaterHeaterEntity,
@@ -25,6 +26,45 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _create_water_heater(
+    hass: core.HomeAssistant,
+    homeserver_name: str,
+    homeserver_ip_address: str,
+    homeserver_id: str,
+    heater_id: str,
+) -> "ClageWaterHeater":
+    """Create a water heater entity for a configured homeserver."""
+    return ClageWaterHeater(
+        coordinator=hass.data[DOMAIN]["coordinator"],
+        hass=hass,
+        homeserver_name=homeserver_name,
+        homeserver_ip_address=homeserver_ip_address,
+        homeserver_id=homeserver_id,
+        heater_id=heater_id,
+    )
+
+
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+) -> None:
+    """Set up Clage water heater entities from a config entry."""
+    config = config_entry.as_dict()["data"]
+
+    async_add_entities(
+        [
+            _create_water_heater(
+                hass=hass,
+                homeserver_name=config[CONF_NAME],
+                homeserver_ip_address=config[CONF_HOMESERVER_IP_ADDRESS],
+                homeserver_id=config[CONF_HOMESERVER_ID],
+                heater_id=config[CONF_HEATER_ID],
+            )
+        ]
+    )
+
+
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up Clage water heater entities."""
     if discovery_info is None:
@@ -36,8 +76,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     for homeserver in homeservers:
         homeserver_name = homeserver[0][CONF_NAME]
         entities.append(
-            ClageWaterHeater(
-                coordinator=hass.data[DOMAIN]["coordinator"],
+            _create_water_heater(
                 hass=hass,
                 homeserver_name=homeserver_name,
                 homeserver_ip_address=homeserver[0][CONF_HOMESERVER_IP_ADDRESS],
