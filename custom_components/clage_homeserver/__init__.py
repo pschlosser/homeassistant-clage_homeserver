@@ -92,9 +92,8 @@ async def async_setup_entry(hass, config):
     #     configuration_url=config.data[CONF_HOMESERVER_IP_ADDRESS],
     # )
 
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(config, "sensor")
-    )
+    await hass.config_entries.async_forward_entry_setups(config, ["sensor"])
+
     return True
 
 
@@ -102,8 +101,14 @@ async def async_unload_entry(hass, entry):
     """Unload the integration clage_homeserver from HOME ASSISTANT"""
 
     _LOGGER.info("Unloading homeserver %s", entry.data[CONF_NAME])
-    hass.data[DOMAIN]["api"].pop(entry.data[CONF_NAME])
-    return True
+
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor"])
+
+    if unload_ok:
+
+        hass.data[DOMAIN]["api"].pop(entry.data[CONF_NAME], None)
+
+    return unload_ok
 
 
 class HomeserverStateFetcher:
