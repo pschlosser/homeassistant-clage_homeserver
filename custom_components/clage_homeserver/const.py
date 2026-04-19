@@ -4,7 +4,7 @@ from typing import Literal
 
 DOMAIN = "clage_homeserver"
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["sensor", "water_heater"]
 
 CONF_NAME = "name"
 CONF_HOMESERVERS = "homeservers"

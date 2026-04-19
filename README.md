@@ -11,6 +11,9 @@ Integration for Homeassistant to view and Control the Clage Homeserver for conti
 - Change the water temperature of the heater
 - No cloud connection needed to control the heater - only local ip-access needed.
 
+## Changes
+- Updated compatibility to HA2026
+
 # Warning: WIP - Work in progress
 This is an early version of the Integration (custom component).
 It uses the Python module [clage_homeserver](https://pypi.org/project/clage-homeserver/) to connect to the REST API of the heater.

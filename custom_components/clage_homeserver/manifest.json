@@ -1,14 +1,14 @@
 {
   "domain": "clage_homeserver",
   "name": "CLAGE Homeserver",
-  "codeowners": ["@klacol"],
+  "codeowners": ["@klacol","@pschlosser"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/klacol/homeassistant-clage_homeserver",
+  "documentation": "https://github.com/pschlosser/homeassistant-clage_homeserver",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/klacol/homeassistant-clage_homeserver/issues",
+  "issue_tracker": "https://github.com/pschlosser/homeassistant-clage_homeserver/issues",
   "requirements": [
     "clage-homeserver==0.1.14"
   ],
-  "version": "0.1.2"
+  "version": "0.1.3"
 }

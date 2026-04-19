@@ -92,7 +92,7 @@ async def async_setup_entry(hass, config):
     #     configuration_url=config.data[CONF_HOMESERVER_IP_ADDRESS],
     # )
 
-    await hass.config_entries.async_forward_entry_setups(config, ["sensor"])
+    await hass.config_entries.async_forward_entry_setups(config, ["sensor", "water_heater"])
 
     return True
 
@@ -102,7 +102,7 @@ async def async_unload_entry(hass, entry):
 
     _LOGGER.info("Unloading homeserver %s", entry.data[CONF_NAME])
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor"])
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor", "water_heater"])
 
     if unload_ok:
 
