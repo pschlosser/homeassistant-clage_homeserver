@@ -131,26 +131,27 @@ class ClageWaterHeater(CoordinatorEntity, WaterHeaterEntity):
             "configuration_url": f"https://{self.homeserver_ip_address}",
         }
 
+    def _get_homeserver_data(self) -> dict:
+        if not self.coordinator.data:
+            return {}
+        return self.coordinator.data.get(self.homeservername, {})
+
     @property
     def available(self) -> bool:
         """Return if entity is available."""
         if not super().available:
             return False
-
-        data = self.coordinator.data.get(self.homeservername, {})
-        return data.get("heater_connected", True)
+        return self._get_homeserver_data().get("heater_connected", True)
 
     @property
     def current_temperature(self) -> float | None:
         """Return current outlet temperature."""
-        data = self.coordinator.data.get(self.homeservername, {})
-        return data.get("heater_status_tOut")
+        return self._get_homeserver_data().get("heater_status_tOut")
 
     @property
     def target_temperature(self) -> float | None:
         """Return target temperature."""
-        data = self.coordinator.data.get(self.homeservername, {})
-        return data.get("heater_status_setpoint")
+        return self._get_homeserver_data().get("heater_status_setpoint")
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
@@ -158,7 +159,10 @@ class ClageWaterHeater(CoordinatorEntity, WaterHeaterEntity):
         if temperature is None:
             return
 
-        homeserver = self.hass.data[DOMAIN]["api"][self.homeservername]
+        homeserver = self.hass.data[DOMAIN]["api"].get(self.homeservername)
+        if homeserver is None:
+            _LOGGER.error("Homeserver '%s' not found", self.homeservername)
+            return
 
         _LOGGER.debug(
             "Setting temperature for %s to %s °C",
@@ -166,7 +170,14 @@ class ClageWaterHeater(CoordinatorEntity, WaterHeaterEntity):
             temperature,
         )
 
-        await self.hass.async_add_executor_job(
-            homeserver.setTemperature, float(temperature)
-        )
+        try:
+            await self.hass.async_add_executor_job(
+                homeserver.setTemperature, float(temperature)
+            )
+        except Exception as err:
+            _LOGGER.error(
+                "Error setting temperature for '%s': %s", self.homeservername, err
+            )
+            return
+
         await self.coordinator.async_request_refresh()
