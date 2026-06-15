@@ -468,7 +468,7 @@ def _create_sensors_for_homeserver(
         _entities.append(
             ClageHomeserverSensor(
                 coordinator=hass.data[DOMAIN]["coordinator"],
-                entity_id=f"sensor.clagehomeserver_{homeserver_name}_{_sensor.system_name}",
+                entity_id=f"sensor.clagehomeserver_{homeserver_name}_{_sensor.system_name}".lower(),
                 homeserver_name=homeserver_name,
                 homeserver_ip_address=homeserver_ip_address,
                 homeserver_id=homeserver_id,
