@@ -9,7 +9,8 @@
           "name": "Der Name des Homeservers",
           "ipAddress": "Die IP-Adresse des Homeservers im lokalen Netzwerk (z.B. 192.168.9.65).",
           "homeserverId": "Die ID des Homeservers. Diese kann in der CLAGE Smart-Control APP abgerufen werden, unter 'Einstellung/Geräte/DSX Server/Server-ID.",
-          "heaterId": "Die ID des Durchlauferhitzers, der an den Homeserver angeschlossen oder in dem der Homeserver integriert ist. Diese kann in der CLAGE Smart-Control APP abgerufen werden, unter 'Einstellung/Geräte/DSX Touch/Gerätekennung."
+          "heaterId": "Die ID des Durchlauferhitzers, der an den Homeserver angeschlossen oder in dem der Homeserver integriert ist. Diese kann in der CLAGE Smart-Control APP abgerufen werden, unter 'Einstellung/Geräte/DSX Touch/Gerätekennung.",
+          "password": "Passwort für den Homeserver (leer lassen für Standard-Passwort 'smart')."
         }
       }
     },
