@@ -125,7 +125,7 @@ class HomeserverStateFetcher:
         _LOGGER.debug("Updating the states")
         homeservers = self._hass.data[DOMAIN]["api"]
         data = self.coordinator.data if self.coordinator.data else {}
-        for homeserver_id in homeservers.keys():
+        for homeserver_id in list(homeservers.keys()):
             homeserver = homeservers[homeserver_id]
             fetched_states = dict(data.get(homeserver_id, {}))
 
