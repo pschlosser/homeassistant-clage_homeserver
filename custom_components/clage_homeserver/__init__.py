@@ -125,30 +125,40 @@ class HomeserverStateFetcher:
         data = self.coordinator.data if self.coordinator.data else {}
         for homeserver_id in homeservers.keys():
             homeserver = homeservers[homeserver_id]
+            fetched_states = dict(data.get(homeserver_id, {}))
 
-            _LOGGER.debug(
-                "Fetch the states (status) from the CLAGE Homeserver '%s' und update them in Home Assistant",
-                homeserver_id,
-            )
-            fetched_states = dict(
-                await self._hass.async_add_executor_job(homeserver.requestStatus)
-            )
+            try:
+                _LOGGER.debug(
+                    "Fetch the states (status) from the CLAGE Homeserver '%s' und update them in Home Assistant",
+                    homeserver_id,
+                )
+                fetched_states.update(
+                    await self._hass.async_add_executor_job(homeserver.requestStatus)
+                )
+            except Exception as err:
+                _LOGGER.warning("Error fetching status from '%s': %s", homeserver_id, err)
 
-            _LOGGER.debug(
-                "Fetch the states (setup) from the CLAGE Homeserver '%s' und update them in Home Assistant",
-                homeserver_id,
-            )
-            fetched_states.update(
-                await self._hass.async_add_executor_job(homeserver.requestSetup)
-            )
+            try:
+                _LOGGER.debug(
+                    "Fetch the states (setup) from the CLAGE Homeserver '%s' und update them in Home Assistant",
+                    homeserver_id,
+                )
+                fetched_states.update(
+                    await self._hass.async_add_executor_job(homeserver.requestSetup)
+                )
+            except Exception as err:
+                _LOGGER.warning("Error fetching setup from '%s': %s", homeserver_id, err)
 
-            _LOGGER.debug(
-                "Fetch the consumption logs from the CLAGE Homeserver '%s' und update them in Home Assistant",
-                homeserver_id,
-            )
-            fetched_states.update(
-                await self._hass.async_add_executor_job(homeserver.GetConsumptionTotals)
-            )
+            try:
+                _LOGGER.debug(
+                    "Fetch the consumption logs from the CLAGE Homeserver '%s' und update them in Home Assistant",
+                    homeserver_id,
+                )
+                fetched_states.update(
+                    await self._hass.async_add_executor_job(homeserver.GetConsumptionTotals)
+                )
+            except Exception as err:
+                _LOGGER.warning("Error fetching consumption totals from '%s': %s", homeserver_id, err)
 
             data[homeserver_id] = fetched_states
         return data
