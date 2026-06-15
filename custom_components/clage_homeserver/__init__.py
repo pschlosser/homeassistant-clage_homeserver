@@ -134,11 +134,18 @@ class HomeserverStateFetcher:
                     "Fetch the states (status) from the CLAGE Homeserver '%s' und update them in Home Assistant",
                     homeserver_id,
                 )
-                fetched_states.update(
-                    await self._hass.async_add_executor_job(homeserver.requestStatus)
-                )
+                status_result = await self._hass.async_add_executor_job(homeserver.requestStatus)
+                if status_result:
+                    fetched_states.update(status_result)
+                else:
+                    _LOGGER.warning(
+                        "No status data from '%s' — homeserver unreachable or homeserverId/heaterId incorrect.",
+                        homeserver_id,
+                    )
+                    fetched_states["heater_connected"] = False
             except Exception as err:
                 _LOGGER.warning("Error fetching status from '%s': %s", homeserver_id, err)
+                fetched_states["heater_connected"] = False
 
             try:
                 _LOGGER.debug(
