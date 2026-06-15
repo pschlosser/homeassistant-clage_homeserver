@@ -588,9 +588,18 @@ class ClageHomeserverSensor(CoordinatorEntity, SensorEntity):
         return f"{self.homeservername}_{self._attribute}"
 
     @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        if not super().available or not self.coordinator.data:
+            return False
+        return self._attribute in self.coordinator.data.get(self.homeservername, {})
+
+    @property
     def state(self):
         """Return the state of the sensor."""
-        return self.coordinator.data[self.homeservername][self._attribute]
+        if not self.coordinator.data:
+            return None
+        return self.coordinator.data.get(self.homeservername, {}).get(self._attribute)
 
     @property
     def unit_of_measurement(self):
