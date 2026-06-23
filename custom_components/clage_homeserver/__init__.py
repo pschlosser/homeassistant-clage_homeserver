@@ -1,4 +1,5 @@
 """clage_homeserver integration"""
+import asyncio
 import voluptuous as vol
 import ipaddress
 import logging
@@ -81,20 +82,9 @@ async def async_setup_entry(hass, config):
     )
     hass.data[DOMAIN]["api"][name] = clage_homeserver
 
-    await hass.data[DOMAIN]["coordinator"].async_refresh()
-
-    # device_registry = dr.async_get(hass)
-
-    # device_registry.async_get_or_create(
-    #     config_entry_id=config.entry_id,
-    #     identifiers=f"{name}.{config.data[CONF_HOMESERVER_ID]}.{config.data[CONF_HEATER_ID]}",
-    #     manufacturer="CLAGE GmbH",
-    #     name=name,
-    #     model="DSX Touch",
-    #     configuration_url=config.data[CONF_HOMESERVER_IP_ADDRESS],
-    # )
-
     await hass.config_entries.async_forward_entry_setups(config, ["sensor", "water_heater"])
+
+    await hass.data[DOMAIN]["coordinator"].async_request_refresh()
 
     return True
 
@@ -131,10 +121,13 @@ class HomeserverStateFetcher:
 
             try:
                 _LOGGER.debug(
-                    "Fetch the states (status) from the CLAGE Homeserver '%s' und update them in Home Assistant",
+                    "Fetch the states (status) from the CLAGE Homeserver '%s'",
                     homeserver_id,
                 )
-                status_result = await self._hass.async_add_executor_job(homeserver.requestStatus)
+                status_result = await asyncio.wait_for(
+                    self._hass.async_add_executor_job(homeserver.requestStatus),
+                    timeout=10,
+                )
                 if status_result:
                     fetched_states.update(status_result)
                 else:
@@ -143,29 +136,42 @@ class HomeserverStateFetcher:
                         homeserver_id,
                     )
                     fetched_states["heater_connected"] = False
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Timeout fetching status from '%s'", homeserver_id)
+                fetched_states["heater_connected"] = False
             except Exception as err:
                 _LOGGER.warning("Error fetching status from '%s': %s", homeserver_id, err)
                 fetched_states["heater_connected"] = False
 
             try:
                 _LOGGER.debug(
-                    "Fetch the states (setup) from the CLAGE Homeserver '%s' und update them in Home Assistant",
+                    "Fetch the states (setup) from the CLAGE Homeserver '%s'",
                     homeserver_id,
                 )
                 fetched_states.update(
-                    await self._hass.async_add_executor_job(homeserver.requestSetup)
+                    await asyncio.wait_for(
+                        self._hass.async_add_executor_job(homeserver.requestSetup),
+                        timeout=10,
+                    )
                 )
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Timeout fetching setup from '%s'", homeserver_id)
             except Exception as err:
                 _LOGGER.warning("Error fetching setup from '%s': %s", homeserver_id, err)
 
             try:
                 _LOGGER.debug(
-                    "Fetch the consumption logs from the CLAGE Homeserver '%s' und update them in Home Assistant",
+                    "Fetch the consumption logs from the CLAGE Homeserver '%s'",
                     homeserver_id,
                 )
                 fetched_states.update(
-                    await self._hass.async_add_executor_job(homeserver.GetConsumptionTotals)
+                    await asyncio.wait_for(
+                        self._hass.async_add_executor_job(homeserver.GetConsumptionTotals),
+                        timeout=10,
+                    )
                 )
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Timeout fetching consumption totals from '%s'", homeserver_id)
             except Exception as err:
                 _LOGGER.warning("Error fetching consumption totals from '%s': %s", homeserver_id, err)
 
@@ -217,7 +223,7 @@ async def async_setup(hass: core.HomeAssistant, config: dict) -> bool:
 
     hass.data[DOMAIN]["coordinator"] = coordinator
 
-    await coordinator.async_refresh()
+    await coordinator.async_request_refresh()
 
     async def async_handle_set_temperature(call):
         """Handle the service call to set the temperature of the heater."""
